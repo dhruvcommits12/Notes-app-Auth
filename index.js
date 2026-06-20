@@ -1,6 +1,7 @@
 const express = require("express")
 const path = require("path")
 const jwt = require("jsonwebtoken")
+const { authMiddleware } = require("./middleware")
 
 const app = new express()
 app.use(express.json())
@@ -11,31 +12,12 @@ let notes = []
 let users = []
 
 //AUTHENTICATED ENDPOINT
-app.post("/notes",(req,res)=>{
+app.post("/notes",authMiddleware, (req,res)=>{
     
     //check if they have sent the right header, extract who the user is from the header
+    //Done in middleware
 
-    const token = req.headers.token
-
-    if(!token){
-
-        res.status(403).send({
-            message:"You are not logged in"
-        })
-        return;
-    }
-
-    const decoded = jwt.verify(token,"dhruv712")
-    const username = decoded.username
-
-    if(!username){
-        res.status(401).send({
-            message:"Malfunctioned JWT"
-        })
-
-        return;
-    }
-
+    const username = req.username
     const note = req.body.note
     notes.push({note,username})
 
@@ -93,29 +75,9 @@ app.post("/signin",(req,res)=>{
 })
 
 //AUTHENTICATED ENDPOINT
-app.get("/notes",(req,res)=>{
+app.get("/notes",authMiddleware, (req,res)=>{
 
-    const token = req.headers.token
-
-    if(!token){
-
-        res.status(403).send({
-            message:"You are not logged in"
-        })
-        return;
-    }
-
-    const decoded = jwt.verify(token,"dhruv712")
-    const username = decoded.username
-
-    if(!username){
-        res.status(401).send({
-            message:"Malfunctioned JWT"
-        })
-
-        return;
-    }
-
+    const username = req.username
     const userNote = notes.filter(note => note.username === username)
 
     res.json({
